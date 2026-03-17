@@ -15,7 +15,13 @@ Para deploy completo no Droplet (incluindo criacao de chave SSH no Linux e insta
 
 - `DEPLOY_DIGITALOCEAN_DROPLET.md`
 
-O projeto esta configurado para build no proprio servidor e usa `docker-compose.yml` com `version: "2.4"` para compatibilidade com Compose antigo e novo.
+O projeto esta configurado para build no proprio servidor e usa `compose.yaml` com `name: formulas` e sem `version`, seguindo o Compose moderno recomendado.
+
+Comando padrao unico de deploy no Droplet (copy/paste), assumindo projeto em `/opt/formulas`:
+
+```bash
+ssh root@<IP_DO_DROPLET> 'set -e; cd /opt/formulas; git pull --ff-only; docker compose up -d --build; docker compose ps'
+```
 
 ## Preparacao no Google Drive
 
@@ -68,13 +74,6 @@ docker logs -f formulas-app
 
 ```bash
 docker compose down
-```
-
-Se estiver usando Compose legado:
-
-```bash
-docker-compose up -d --build
-docker-compose down
 ```
 
 ## Execucao local (Node) + MySQL no Docker
@@ -131,14 +130,8 @@ npm start
 # subir stack completa
 docker compose up -d --build
 
-# subir stack completa (legado)
-docker-compose up -d --build
-
 # status dos containers
 docker compose ps
-
-# status dos containers (legado)
-docker-compose ps
 
 # logs da aplicacao
 docker logs -f formulas-app

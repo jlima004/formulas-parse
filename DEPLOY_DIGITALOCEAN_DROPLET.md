@@ -1,6 +1,6 @@
 # Deploy na DigitalOcean (Droplet)
 
-Guia passo a passo para deploy da aplicacao em um Droplet Ubuntu, com build no proprio servidor e compatibilidade com `docker compose` (plugin v2) e `docker-compose` (legado).
+Guia passo a passo para deploy da aplicacao em um Droplet Ubuntu, com build no proprio servidor usando `docker compose` moderno (plugin v2).
 
 ## 1) Criar chave SSH no Linux
 
@@ -160,16 +160,8 @@ GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/service-account.json
 
 ## 7) Subir aplicacao (build no proprio Droplet)
 
-Com Compose plugin v2:
-
 ```bash
 docker compose up -d --build
-```
-
-Com Compose legado:
-
-```bash
-docker-compose up -d --build
 ```
 
 ## 8) Operacao basica
@@ -215,16 +207,14 @@ Teste remoto (da sua maquina):
 mysql -h <IP_PUBLICO_DO_DROPLET> -P <MYSQL_PORT> -u <MYSQL_USER> -p
 ```
 
-## 10) Compatibilidade entre versoes do Compose
+## 10) Validar configuracao do Compose
 
-O arquivo principal do projeto usa `docker-compose.yml` com `version: "2.4"`, para aumentar compatibilidade com:
-
-- `docker-compose` antigo (v1.25+)
-- `docker compose` moderno (plugin v2)
+O arquivo principal do projeto e `compose.yaml`, com `name: formulas` e sem `version`, para evitar warnings no Compose v2.
 
 Validacao recomendada:
 
 ```bash
+docker compose config -q
+docker compose --env-file .env config -q
 docker compose config
-docker-compose config
 ```
