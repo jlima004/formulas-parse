@@ -9,6 +9,10 @@ dist/
 
 # Generated output
 Output/
+staging/
+
+# Local credentials
+credentials/
 
 # PDF files in root directory
 *.pdf

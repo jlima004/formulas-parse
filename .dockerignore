@@ -4,6 +4,8 @@
 node_modules
 dist
 Output
+staging
+credentials
 *.log
 npm-debug.log*
 .DS_Store

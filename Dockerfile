@@ -22,11 +22,8 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 COPY --from=build /app/dist ./dist
 
-# Arquivos usados no OCR e PDFs de entrada processados pela aplicação.
+# Arquivos usados no OCR.
 COPY *.traineddata ./
-COPY *.pdf ./
-
-RUN mkdir -p /app/Output
 
 USER node
 

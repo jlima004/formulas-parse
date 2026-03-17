@@ -38,22 +38,17 @@ services:
     environment:
       NODE_ENV: production
       MYSQL_HOST: ${MYSQL_HOST:-mysql}
-      MYSQL_PORT: ${MYSQL_PORT:-3306}
+      MYSQL_PORT: 3306
       MYSQL_DATABASE: ${MYSQL_DATABASE:-formulas}
       MYSQL_USER: ${MYSQL_USER:-formulas}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-formulas}
-      PARSER_INTERVAL_SECONDS: ${PARSER_INTERVAL_SECONDS:-300}
-    command:
-      - /bin/sh
-      - -lc
-      - |
-        echo "[formulas-app] Modo contínuo ativo. Intervalo: $${PARSER_INTERVAL_SECONDS}s"
-        while true; do
-          node dist/index.js || true
-          sleep "$${PARSER_INTERVAL_SECONDS}"
-        done
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-/app/credentials/service-account.json}
+      GOOGLE_DRIVE_FOLDER_ID: ${GOOGLE_DRIVE_FOLDER_ID}
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-300}
+      PDF_STAGING_DIR: /tmp/formulas/staging/pdfs
+    command: ["node", "dist/index.js"]
     volumes:
-      - ./Output:/app/Output
+      - ./credentials:/app/credentials:ro
     networks:
       - formulas-net
 

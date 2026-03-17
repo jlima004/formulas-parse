@@ -60,4 +60,21 @@ export async function ensureDatabaseSchema(pool: Pool): Promise<void> {
       INDEX idx_formula_items_codigo (codigo)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `);
+
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS processed_drive_files (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      drive_file_id VARCHAR(255) NOT NULL,
+      file_name VARCHAR(512) NOT NULL,
+      modified_time VARCHAR(64) NOT NULL,
+      status ENUM('success', 'failed') NOT NULL,
+      last_processed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      error_message TEXT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      UNIQUE KEY uq_processed_drive_files_drive_file_id (drive_file_id),
+      INDEX idx_processed_drive_files_status (status),
+      INDEX idx_processed_drive_files_last_processed_at (last_processed_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `);
 }

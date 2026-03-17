@@ -1,112 +1,127 @@
 # Formulas PDF Parser
 
-Parser em Node.js + TypeScript para processar PDFs da raiz do projeto e persistir dados diretamente no MySQL.
+Aplicacao em Node.js + TypeScript para ler PDFs de uma pasta do Google Drive, baixar para staging local, processar com o parser atual e persistir os dados no MySQL.
 
 ## Requisitos
 
 - Node.js 22+
 - npm
 - Docker e Docker Compose
+- Conta de servico Google com JSON de credenciais
 
-## Instalação e execução do zero (passo a passo)
+## Preparacao no Google Drive
 
-### Opção A: com Docker (recomendado)
+1. Crie uma Service Account no Google Cloud e gere o arquivo JSON.
+2. Compartilhe a pasta do Google Drive com o email da Service Account (permissao de leitura basta).
+3. Copie o `folderId` da pasta (valor presente na URL da pasta no Drive).
 
-1. Configure variáveis de ambiente:
+## Variaveis de ambiente
+
+Copie o arquivo de exemplo:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Ajuste o `.env` se necessário (`MYSQL_*` e `PARSER_INTERVAL_SECONDS`).
+Preencha obrigatoriamente:
 
-3. Suba aplicação + banco:
+- `GOOGLE_APPLICATION_CREDENTIALS`: caminho para o JSON da Service Account.
+- `GOOGLE_DRIVE_FOLDER_ID`: ID da pasta com os PDFs.
+
+Variaveis relevantes:
+
+- `POLL_INTERVAL_SECONDS`: intervalo entre ciclos de polling (padrao `300`).
+- `PDF_STAGING_DIR`: pasta de staging dos PDFs baixados (padrao `staging/pdfs`).
+- `MYSQL_*`: configuracao de conexao com o banco.
+
+## Execucao com Docker (recomendado)
+
+1. Crie a pasta de credenciais e coloque o JSON:
+
+```bash
+mkdir -p credentials
+```
+
+2. Ajuste o `.env` (incluindo `GOOGLE_DRIVE_FOLDER_ID`).
+
+3. Suba aplicacao + banco:
 
 ```bash
 docker compose up -d --build
 ```
 
-4. Verifique status dos serviços:
-
-```bash
-docker compose ps
-```
-
-5. Acompanhe logs da aplicação:
+4. Acompanhe logs:
 
 ```bash
 docker logs -f formulas-app
 ```
 
-6. Para parar tudo:
+5. Parar stack:
 
 ```bash
 docker compose down
 ```
 
-### Opção B: local (Node) + MySQL no Docker
+## Execucao local (Node) + MySQL no Docker
 
-1. Configure variáveis de ambiente:
-
-```bash
-cp .env.example .env
-```
-
-2. Suba apenas o banco:
+1. Suba somente o MySQL:
 
 ```bash
 docker compose up -d mysql
 ```
 
-3. Instale dependências do projeto:
+2. Instale dependencias:
 
 ```bash
 npm install
 ```
 
-4. Valide compilação TypeScript:
+3. Build:
 
 ```bash
 npm run build
 ```
 
-5. Execute o parser uma vez:
+4. Inicie o polling:
 
 ```bash
 npm start
 ```
 
-## Fluxo da aplicação
+## Fluxo de ingestao
 
-1. Lê PDFs da raiz do projeto.
-2. Normaliza texto e extrai campos/itens.
-3. Persiste resultado no MySQL (`formulas` e `formula_items`).
+1. Lista PDFs do Drive filtrando `mimeType = application/pdf`.
+2. Ignora arquivos ja processados com sucesso no mesmo `modified_time`.
+3. Baixa cada PDF para staging local com prefixo do `fileId`.
+4. Reutiliza parser e persistencia existentes (`formulas` e `formula_items`).
+5. Registra status em `processed_drive_files`.
+6. Executa continuamente com `setInterval` e bloqueio de concorrencia entre ciclos.
 
-## Comandos úteis
+## Controle de reprocessamento
+
+- Arquivo com mesmo `drive_file_id` + `modified_time` e status `success` e ignorado.
+- Arquivos com falha podem ser tentados novamente em ciclos seguintes.
+- Em sucesso, o arquivo local de staging e removido.
+- Em falha, o arquivo pode permanecer no staging para diagnostico.
+
+## Comandos uteis
 
 ```bash
 # build local
 npm run build
 
-# execução local (job único)
+# iniciar polling local
 npm start
 
 # subir stack completa
 docker compose up -d --build
 
-# ver status
+# status dos containers
 docker compose ps
 
-# logs do parser contínuo
+# logs da aplicacao
 docker logs -f formulas-app
 
-# validar contagem no banco
-docker exec formulas-mysql mysql -uformulas -pformulas formulas -e "SELECT COUNT(*) FROM formulas; SELECT COUNT(*) FROM formula_items;"
+# checar dados persistidos
+docker exec formulas-mysql mysql -uformulas -pformulas formulas -e "SELECT COUNT(*) FROM formulas; SELECT COUNT(*) FROM formula_items; SELECT drive_file_id,status,modified_time,last_processed_at FROM processed_drive_files ORDER BY last_processed_at DESC LIMIT 20;"
 ```
-
-## Notas rápidas
-
-- No Docker, `formulas-app` roda em modo contínuo (loop), respeitando `PARSER_INTERVAL_SECONDS`.
-- OCR é fallback automático quando extração por pdfjs é insuficiente.
-- Tipos e contrato de saída ficam em `src/types/formula.ts`.
-- A execução não gera mais arquivos JSON em `Output/`; a validação operacional deve ser feita via consultas SQL no banco.
