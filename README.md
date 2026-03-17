@@ -9,6 +9,14 @@ Aplicacao em Node.js + TypeScript para ler PDFs de uma pasta do Google Drive, ba
 - Docker e Docker Compose
 - Conta de servico Google com JSON de credenciais
 
+## Deploy na DigitalOcean
+
+Para deploy completo no Droplet (incluindo criacao de chave SSH no Linux e instalacao do Docker), consulte:
+
+- `DEPLOY_DIGITALOCEAN_DROPLET.md`
+
+O projeto esta configurado para build no proprio servidor e usa `docker-compose.yml` com `version: "2.4"` para compatibilidade com Compose antigo e novo.
+
 ## Preparacao no Google Drive
 
 1. Crie uma Service Account no Google Cloud e gere o arquivo JSON.
@@ -60,6 +68,13 @@ docker logs -f formulas-app
 
 ```bash
 docker compose down
+```
+
+Se estiver usando Compose legado:
+
+```bash
+docker-compose up -d --build
+docker-compose down
 ```
 
 ## Execucao local (Node) + MySQL no Docker
@@ -116,8 +131,14 @@ npm start
 # subir stack completa
 docker compose up -d --build
 
+# subir stack completa (legado)
+docker-compose up -d --build
+
 # status dos containers
 docker compose ps
+
+# status dos containers (legado)
+docker-compose ps
 
 # logs da aplicacao
 docker logs -f formulas-app

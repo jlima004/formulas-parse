@@ -7,7 +7,7 @@ FROM formula_items;
 -- LISTA TUDO DA TABELA FORMULAS COM ID = ****
 SELECT *
 FROM formulas -- INSIRA UM ID VÁLIDO
-WHERE id = "2ee76f0d-f050-48ae-a61f-b7aca6aeef90";
+WHERE id = "73a9625d-f437-45fe-9ade-65fe709407fb";
 -- LISTA TUDO DA TABELA FORMULAS AGRUPADA POR ID E CONTANDO QUANTIDADE DE ITENS
 SELECT formulas.*,
     COUNT(formula_items.id) AS quantidade_de_itens
